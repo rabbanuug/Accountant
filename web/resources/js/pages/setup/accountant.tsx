@@ -13,6 +13,8 @@ export default function AccountantSetup() {
         email: '',
         phone: '',
         bio: '',
+        password: '',
+        password_confirmation: '',
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -35,6 +37,8 @@ export default function AccountantSetup() {
                 firm_name: formData.firmName,
                 phone: formData.phone,
                 bio: formData.bio,
+                password: formData.password,
+                password_confirmation: formData.password_confirmation,
             });
 
             if (response.data.success) {
@@ -81,7 +85,7 @@ export default function AccountantSetup() {
                     {/* Progress Steps */}
                     <div className="flex justify-center mb-8">
                         <div className="flex items-center gap-4">
-                            {[1, 2].map((s) => (
+                            {[1, 2, 3].map((s) => (
                                 <div key={s} className="flex items-center">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${step >= s
                                         ? 'bg-gradient-to-r from-blue-500 to-teal-400 text-white shadow-lg shadow-blue-500/25'
@@ -93,7 +97,7 @@ export default function AccountantSetup() {
                                             </svg>
                                         ) : s}
                                     </div>
-                                    {s < 2 && (
+                                    {s < 3 && (
                                         <div className={`w-12 h-1 mx-2 rounded ${step > s ? 'bg-teal-400' : 'bg-white/10'}`} />
                                     )}
                                 </div>
@@ -210,8 +214,66 @@ export default function AccountantSetup() {
                                         Back
                                     </button>
                                     <button
-                                        type="submit"
+                                        type="button"
+                                        onClick={() => setStep(3)}
+                                        className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-teal-400 rounded-xl font-semibold text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                                    >
+                                        Continue
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 3 && (
+                            <div className="space-y-6">
+                                <div className="text-center mb-8">
+                                    <h2 className="text-2xl font-bold text-white mb-2">Secure your account</h2>
+                                    <p className="text-slate-400">Set a strong password for your login</p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-300 mb-2">Password *</label>
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            required
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-300 mb-2">Confirm Password *</label>
+                                        <input
+                                            type="password"
+                                            name="password_confirmation"
+                                            required
+                                            value={formData.password_confirmation}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setStep(2)}
                                         disabled={isLoading}
+                                        className="flex-1 py-4 border border-white/20 rounded-xl font-semibold text-white hover:bg-white/5 transition-all"
+                                    >
+                                        Back
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isLoading || !formData.password || !formData.password_confirmation}
                                         className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-teal-400 rounded-xl font-semibold text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
                                         {isLoading ? (

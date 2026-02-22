@@ -27,6 +27,8 @@ export default function Setup() {
         email: '',
         occupation: '',
         phone: '',
+        password: '',
+        password_confirmation: '',
     });
 
     const handleChange = (field: string, value: string) => {
@@ -42,6 +44,8 @@ export default function Setup() {
                 role: 'client',
                 occupation: formData.occupation,
                 phone: formData.phone,
+                password: formData.password,
+                password_confirmation: formData.password_confirmation,
             });
 
             await SecureStore.setItemAsync('token', response.data.access_token);
@@ -90,7 +94,7 @@ export default function Setup() {
 
                         {/* Progress Indicator */}
                         <View style={styles.progressContainer}>
-                            {[1, 2].map((s) => (
+                            {[1, 2, 3].map((s) => (
                                 <View key={s} style={styles.progressItem}>
                                     <View style={[
                                         styles.progressDot,
@@ -105,7 +109,7 @@ export default function Setup() {
                                             ]}>{s}</Text>
                                         )}
                                     </View>
-                                    {s < 2 && (
+                                    {s < 3 && (
                                         <View style={[
                                             styles.progressLine,
                                             step > s && styles.progressLineActive
@@ -117,7 +121,7 @@ export default function Setup() {
 
                         {/* Form Card */}
                         <View style={styles.card}>
-                            {step === 1 ? (
+                            {step === 1 && (
                                 <>
                                     <Text style={styles.cardTitle}>Tell us about yourself</Text>
                                     <Text style={styles.cardSubtitle}>We'll use this to personalize your experience</Text>
@@ -173,7 +177,9 @@ export default function Setup() {
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 </>
-                            ) : (
+                            )}
+
+                            {step === 2 && (
                                 <>
                                     <Text style={styles.cardTitle}>Almost there!</Text>
                                     <Text style={styles.cardSubtitle}>Add some optional details</Text>
@@ -216,12 +222,79 @@ export default function Setup() {
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
-                                            onPress={handleSubmit}
-                                            disabled={loading}
-                                            style={[styles.button, styles.buttonFlex, loading && styles.buttonDisabled]}
+                                            onPress={() => setStep(3)}
+                                            style={[styles.button, styles.buttonFlex]}
                                         >
                                             <LinearGradient
-                                                colors={loading ? ['#475569', '#475569'] : ['#3b82f6', '#14b8a6']}
+                                                colors={['#3b82f6', '#14b8a6']}
+                                                style={styles.buttonGradient}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 0 }}
+                                            >
+                                                <Text style={styles.buttonText}>Continue</Text>
+                                                <Ionicons name="arrow-forward" size={20} color="#fff" />
+                                            </LinearGradient>
+                                        </TouchableOpacity>
+                                    </View>
+                                </>
+                            )}
+
+                            {step === 3 && (
+                                <>
+                                    <Text style={styles.cardTitle}>Secure your account</Text>
+                                    <Text style={styles.cardSubtitle}>Set a strong password for your login</Text>
+
+                                    <View style={styles.inputGroup}>
+                                        <Text style={styles.label}>Password *</Text>
+                                        <View style={styles.inputContainer}>
+                                            <Ionicons name="lock-closed-outline" size={20} color="#64748b" style={styles.inputIcon} />
+                                            <TextInput
+                                                placeholder="••••••••"
+                                                placeholderTextColor="#64748b"
+                                                value={formData.password}
+                                                onChangeText={(v) => handleChange('password', v)}
+                                                style={styles.input}
+                                                secureTextEntry
+                                            />
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.inputGroup}>
+                                        <Text style={styles.label}>Confirm Password *</Text>
+                                        <View style={styles.inputContainer}>
+                                            <Ionicons name="lock-closed-outline" size={20} color="#64748b" style={styles.inputIcon} />
+                                            <TextInput
+                                                placeholder="••••••••"
+                                                placeholderTextColor="#64748b"
+                                                value={formData.password_confirmation}
+                                                onChangeText={(v) => handleChange('password_confirmation', v)}
+                                                style={styles.input}
+                                                secureTextEntry
+                                            />
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.buttonRow}>
+                                        <TouchableOpacity
+                                            onPress={() => setStep(2)}
+                                            style={styles.backButton}
+                                        >
+                                            <Text style={styles.backButtonText}>Back</Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            onPress={handleSubmit}
+                                            disabled={loading || !formData.password || !formData.password_confirmation}
+                                            style={[
+                                                styles.button,
+                                                styles.buttonFlex,
+                                                (loading || !formData.password || !formData.password_confirmation) && styles.buttonDisabled
+                                            ]}
+                                        >
+                                            <LinearGradient
+                                                colors={(loading || !formData.password || !formData.password_confirmation)
+                                                    ? ['#475569', '#475569']
+                                                    : ['#3b82f6', '#14b8a6']}
                                                 style={styles.buttonGradient}
                                                 start={{ x: 0, y: 0 }}
                                                 end={{ x: 1, y: 0 }}

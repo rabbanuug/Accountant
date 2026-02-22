@@ -1,0 +1,24 @@
+{
+    "aggregate": {
+        "timestamp": "2026-02-15T11:34:01+06:00",
+        "scenariosCreated": 500,
+        "scenariosCompleted": 500,
+        "requestsCompleted": 500,
+        "latency": {
+            "min": 906.143,
+            "max": 10072.245,
+            "median": 5815.029632000005,
+            "p95": 10072.245,
+            "p99": 10072.245
+        },
+        "rps": {
+            "count": 500,
+            "mean": 8.285980595292267
+        },
+        "codes": {
+            "200": 15,
+            "0": 485
+        },
+        "errors": 485
+    }
+}

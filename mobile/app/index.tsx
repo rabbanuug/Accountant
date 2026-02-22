@@ -16,9 +16,18 @@ export default function Index() {
         try {
             const token = await SecureStore.getItemAsync('token');
             const user = await SecureStore.getItemAsync('user');
+            const rememberMe = await SecureStore.getItemAsync('remember_me');
 
             if (token && user) {
-                setAuthState('authenticated');
+                if (rememberMe === 'false') {
+                    // If remember me is false, clear session on app restart
+                    await SecureStore.deleteItemAsync('token');
+                    await SecureStore.deleteItemAsync('user');
+                    await SecureStore.deleteItemAsync('remember_me');
+                    setAuthState('unauthenticated');
+                } else {
+                    setAuthState('authenticated');
+                }
             } else {
                 setAuthState('unauthenticated');
             }

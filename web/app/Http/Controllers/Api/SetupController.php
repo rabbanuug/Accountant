@@ -22,6 +22,7 @@ class SetupController extends Controller
             'occupation' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:50',
             'bio' => 'nullable|string|max:1000',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         // Check if user with this email exists
@@ -36,9 +37,10 @@ class SetupController extends Controller
                 'phone' => $request->phone,
                 'bio' => $request->bio,
                 'setup_completed' => true,
+                'password' => \Illuminate\Support\Facades\Hash::make($request->password),
             ]);
         } else {
-            // Create new user without password
+            // Create new user with password
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -49,6 +51,7 @@ class SetupController extends Controller
                 'bio' => $request->bio,
                 'device_token' => Str::random(64),
                 'setup_completed' => true,
+                'password' => \Illuminate\Support\Facades\Hash::make($request->password),
             ]);
         }
 

@@ -1,0 +1,54 @@
+config:
+  target: "http://127.0.0.1:8000"
+  phases:
+    - duration: 5
+      arrivalRate: 5
+      name: "Ramp up"
+    - duration: 10
+      arrivalRate: 10
+      name: "Sustained load"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+scenarios:
+  - name: "Client Login & Dashboard"
+    flow:
+      - post:
+          url: "/api/login"
+          json:
+            email: "client{{ $randomNumber(1, 500) }}@test.com" # Matches seeder
+            password: "password"
+          capture:
+            - json: "$.token"
+              as: "token"
+      - get:
+          url: "/api/user"
+          headers:
+            Authorization: "Bearer {{ token }}"
+      - get:
+          url: "/api/company-info"
+          headers:
+            Authorization: "Bearer {{ token }}"
+      - think: 2
+      - get:
+          url: "/api/messages/1" # Chat with accountant
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+  - name: "Accountant Dashboard Load"
+    weight: 1 # Fewer accountants than clients
+    flow:
+      - post:
+          url: "/api/login"
+          json:
+            email: "accountant@test.com"
+            password: "password" 
+          capture:
+            - json: "$.token"
+              as: "token"
+      - get:
+          url: "/api/clients" # Heavy query
+          headers:
+            Authorization: "Bearer {{ token }}"

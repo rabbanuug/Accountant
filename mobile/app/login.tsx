@@ -21,6 +21,7 @@ import { router } from 'expo-router';
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -53,6 +54,8 @@ export default function Login() {
             const response = await api.post('/login', { email, password });
             await SecureStore.setItemAsync('token', response.data.access_token);
             await SecureStore.setItemAsync('user', JSON.stringify(response.data.user));
+            await SecureStore.setItemAsync('remember_me', rememberMe ? 'true' : 'false');
+
 
             // Navigate to main app
             router.replace('/(tabs)');
@@ -163,6 +166,22 @@ export default function Login() {
                                 <View style={styles.dividerLine} />
                                 <Text style={styles.dividerText}>or</Text>
                                 <View style={styles.dividerLine} />
+                            </View>
+
+                            {/* Remember Me */}
+                            <View style={styles.rememberRow}>
+                                <TouchableOpacity
+                                    style={styles.rememberContainer}
+                                    onPress={() => setRememberMe(!rememberMe)}
+                                >
+                                    <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                                        {rememberMe && <Ionicons name="checkmark" size={12} color="#fff" />}
+                                    </View>
+                                    <Text style={styles.rememberText}>Remember me</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity>
+                                    <Text style={styles.forgotPassword}>Forgot Password?</Text>
+                                </TouchableOpacity>
                             </View>
 
                             {/* Setup link -> Register */}
@@ -330,8 +349,40 @@ const styles = StyleSheet.create({
     },
     dividerText: {
         color: '#64748b',
-        paddingHorizontal: 12,
-        fontSize: 12,
+        paddingHorizontal: 16,
+        fontSize: 14,
+    },
+    rememberRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    rememberContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderRadius: 6,
+        borderWidth: 2,
+        borderColor: '#64748b',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    checkboxChecked: {
+        backgroundColor: '#3b82f6',
+        borderColor: '#3b82f6',
+    },
+    rememberText: {
+        color: '#94a3b8',
+        fontSize: 14,
+    },
+    forgotPassword: {
+        color: '#3b82f6',
+        fontSize: 14,
     },
     setupButton: {
         paddingVertical: 14,

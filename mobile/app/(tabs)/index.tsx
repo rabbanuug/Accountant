@@ -39,7 +39,7 @@ export default function ClientDashboard() {
     const userStr = await SecureStore.getItemAsync('user');
 
     if (!token) {
-      router.replace('/setup');
+      router.replace('/login');
       return;
     }
 
@@ -75,7 +75,7 @@ export default function ClientDashboard() {
       if (error.response?.status === 401) {
         await SecureStore.deleteItemAsync('token');
         await SecureStore.deleteItemAsync('user');
-        router.replace('/setup');
+        router.replace('/login');
       }
     } finally {
       setLoading(false);
@@ -92,11 +92,11 @@ export default function ClientDashboard() {
     try {
       await api.post('/logout');
     } catch (e) {
-      // Ignore errors - we're logging out anyway
+      console.log(e);
     }
     await SecureStore.deleteItemAsync('token');
     await SecureStore.deleteItemAsync('user');
-    router.replace('/setup');
+    router.replace('/login');
   };
 
   const getInitials = (name: string) => {
