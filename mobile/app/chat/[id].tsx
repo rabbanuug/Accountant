@@ -25,7 +25,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
 import api, { API_URL } from '../../services/api';
-import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
+import { RichEditor, RichToolbar, actions } from '../../components/ui/RichText';
 
 // Defined types to avoid TS errors
 type Message = {
