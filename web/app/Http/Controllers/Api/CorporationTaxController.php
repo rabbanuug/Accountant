@@ -54,26 +54,37 @@ class CorporationTaxController extends Controller
             'payment_reference' => $request->payment_reference,
         ];
 
+        $record = CorporationTax::firstOrNew(['user_id' => $request->user_id, 'year' => $request->year]);
+        $record->fill($data);
+
         if ($request->hasFile('ct600_file')) {
             $file = $request->file('ct600_file');
             $folder = 'corporation_tax/ct600/' . Str::uuid();
             $path = $file->storeAs($folder, $file->getClientOriginalName(), 'public');
-            $data['ct600_file'] = '/storage/' . $path;
-            $data['ct600_filename'] = $file->getClientOriginalName();
+
+            $files = $record->ct600_files ?? [];
+            $files[] = [
+                'id' => Str::uuid(),
+                'path' => '/storage/' . $path,
+                'name' => $file->getClientOriginalName(),
+                'uploaded_at' => now(),
+            ];
+            $record->ct600_files = $files;
+
+            // Still set these for backward compatibility if needed, using the latest one
+            $record->ct600_file = '/storage/' . $path;
+            $record->ct600_filename = $file->getClientOriginalName();
         }
 
         if ($request->hasFile('tax_computation_file')) {
             $file = $request->file('tax_computation_file');
             $folder = 'corporation_tax/computation/' . Str::uuid();
             $path = $file->storeAs($folder, $file->getClientOriginalName(), 'public');
-            $data['tax_computation_file'] = '/storage/' . $path;
-            $data['tax_computation_filename'] = $file->getClientOriginalName();
+            $record->tax_computation_file = '/storage/' . $path;
+            $record->tax_computation_filename = $file->getClientOriginalName();
         }
 
-        $record = CorporationTax::updateOrCreate(
-            ['user_id' => $request->user_id, 'year' => $request->year],
-            $data
-        );
+        $record->save();
 
         return response()->json($record);
     }

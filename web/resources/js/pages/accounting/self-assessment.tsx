@@ -2,7 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User, FileText, PoundSterling, Loader2, Download, CreditCard, Copy, Upload, ExternalLink } from 'lucide-react';
+import { User, FileText, PoundSterling, Loader2, Download, CreditCard, Copy, Upload, ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -112,6 +112,17 @@ export default function SelfAssessment({ userId, clientName }: Props) {
         }
     };
 
+    const handleDeleteFile = async (type: string, id: number) => {
+        if (!confirm('Are you sure you want to delete this file/record?')) return;
+        try {
+            await axios.delete(`/api/files/${type}/${id}`);
+            loadData();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to delete file.');
+        }
+    };
+
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         // Simple feedback
@@ -176,10 +187,17 @@ export default function SelfAssessment({ userId, clientName }: Props) {
                             {taxData?.tax_return_file ? (
                                 <>
                                     <p className="text-sm text-slate-500 mb-8">{taxData.tax_return_filename || 'tax-return.pdf'}</p>
-                                    <Button onClick={() => window.open(taxData.tax_return_file, '_blank')} className="w-full max-w-xs" variant="outline">
-                                        <Download className="w-4 h-4 mr-2" />
-                                        Download PDF
-                                    </Button>
+                                    <div className="flex gap-2 w-full max-w-xs">
+                                        <Button onClick={() => window.open(taxData.tax_return_file, '_blank')} className="flex-1" variant="outline">
+                                            <Download className="w-4 h-4 mr-2" />
+                                            Download SA100
+                                        </Button>
+                                        {isAccountant && (
+                                            <Button variant="outline" size="icon" className="text-red-500 border-red-200" onClick={() => handleDeleteFile('self_assessment', taxData.id)}>
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        )}
+                                    </div>
                                 </>
                             ) : (
                                 <div className="py-8 px-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 w-full mb-4">

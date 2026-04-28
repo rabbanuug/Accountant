@@ -7,7 +7,8 @@ import {
     FileText,
     Receipt,
     User,
-    ArrowRight
+    ArrowRight,
+    FolderDown
 } from 'lucide-react';
 
 export default function AccountingIndex() {
@@ -74,6 +75,15 @@ export default function AccountingIndex() {
             color: 'bg-sky-500',
             gradient: 'from-sky-500 to-sky-600',
             id: 'self_assessment',
+        },
+        {
+            title: 'Document Depositor',
+            description: 'Upload Income, Expenses & Bank Statements',
+            href: '/accounting/document-depositor',
+            icon: FolderDown,
+            color: 'bg-indigo-500',
+            gradient: 'from-indigo-500 to-indigo-600',
+            id: 'document_depositor',
         },
     ].filter(m => m.id === 'company_info' || services[m.id]);
 

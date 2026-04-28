@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -85,13 +85,13 @@ export default function Login({
                                                 Password
                                             </label>
                                             {canResetPassword && (
-                                                <a
-                                                    href={request()}
+                                                <Link
+                                                    href="/forgot-password"
                                                     className="text-sm text-teal-400 hover:text-teal-300 transition-colors"
                                                     tabIndex={5}
                                                 >
                                                     Forgot password?
-                                                </a>
+                                                </Link>
                                             )}
                                         </div>
                                         <input

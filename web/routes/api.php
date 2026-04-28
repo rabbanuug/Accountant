@@ -14,6 +14,10 @@ Route::post('/setup/check-email', [\App\Http\Controllers\Api\SetupController::cl
 // Public account deletion request (Play Store requirement)
 Route::post('/account/request-deletion', [\App\Http\Controllers\Api\AccountDeletionController::class, 'requestDeletion']);
 
+// Password Reset Routes for Mobile API
+Route::post('/forgot-password', [\App\Http\Controllers\Api\PasswordResetController::class, 'forgotPassword']);
+Route::post('/reset-password', [\App\Http\Controllers\Api\PasswordResetController::class, 'resetPassword']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [\App\Http\Controllers\Api\AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
@@ -22,6 +26,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/accountants', [\App\Http\Controllers\Api\SearchController::class, 'searchAccountants']);
     Route::get('/clients', [\App\Http\Controllers\Api\SearchController::class, 'searchClients']);
+    Route::post('/clients', [\App\Http\Controllers\Api\ClientController::class, 'store']);
+    Route::delete('/clients/{userId}', [\App\Http\Controllers\Api\ClientController::class, 'destroy']);
     Route::post('/clients/{userId}/services', [\App\Http\Controllers\Api\ClientSettingsController::class, 'updateServices']);
 
     Route::get('/messages/{userId}', [\App\Http\Controllers\Api\MessageController::class, 'index']);
@@ -54,6 +60,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/documents/{id}/status', [\App\Http\Controllers\Api\DocumentController::class, 'updateStatus']);
     Route::post('/documents/{id}/resubmit', [\App\Http\Controllers\Api\DocumentController::class, 'requestResubmission']);
 
+    // Generic File Deletion Route for all accounting models
+    Route::delete('/files/{type}/{id}', [\App\Http\Controllers\Api\FileDeletionController::class, 'destroy']);
+
+    // Document Depositor
+    Route::post('/document-depositor/upload', [\App\Http\Controllers\Api\DocumentDepositorController::class, 'upload']);
+
     // Meeting Routes
     Route::apiResource('meetings', \App\Http\Controllers\Api\MeetingController::class);
 
@@ -76,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Payroll - Liabilities
     Route::get('/payroll/liabilities', [\App\Http\Controllers\Api\PayrollController::class, 'getLiabilities']);
     Route::post('/payroll/liabilities', [\App\Http\Controllers\Api\PayrollController::class, 'storeLiability']);
+    Route::post('/payroll/liabilities/p32', [\App\Http\Controllers\Api\PayrollController::class, 'uploadP32']);
 
     // Payroll - Starter Form
     Route::get('/payroll/starter-form', [\App\Http\Controllers\Api\PayrollController::class, 'getStarterForm']);

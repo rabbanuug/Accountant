@@ -2,7 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Calculator, Download, FileText, Loader2, Upload, X } from 'lucide-react';
+import { Calculator, Download, FileText, Loader2, Upload, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -77,6 +77,17 @@ export default function Accounts({ userId, clientName }: Props) {
         }
     };
 
+    const handleDeleteFile = async (type: string, id: number) => {
+        if (!confirm('Are you sure you want to delete this file?')) return;
+        try {
+            await axios.delete(`/api/files/${type}/${id}`);
+            loadAccounts();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to delete file.');
+        }
+    };
+
     return (
         <AppLayout breadcrumbs={[
             { title: 'Accounting', href: '/accounting' },
@@ -137,10 +148,17 @@ export default function Accounts({ userId, clientName }: Props) {
                                             <p className="text-sm text-slate-500">{acc.filename || 'accounts.pdf'}</p>
                                         </div>
                                     </div>
-                                    <Button variant="outline" onClick={() => window.open(acc.file_path, '_blank')}>
-                                        <Download className="w-4 h-4 mr-2" />
-                                        Download PDF
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" onClick={() => window.open(acc.file_path, '_blank')}>
+                                            <Download className="w-4 h-4 mr-2" />
+                                            Download PDF
+                                        </Button>
+                                        {isAccountant && (
+                                            <Button variant="outline" size="icon" className="text-red-500 border-red-200" onClick={() => handleDeleteFile('account_file', acc.id)}>
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                             ))
                         ) : (

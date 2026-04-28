@@ -113,6 +113,11 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'receiver_id');
     }
 
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\CustomResetPassword($token));
+    }
+
     public function companyInfo()
     {
         return $this->hasOne(ClientCompanyInfo::class);

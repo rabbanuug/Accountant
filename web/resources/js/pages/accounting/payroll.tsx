@@ -5,7 +5,7 @@ import axios from 'axios';
 import {
     Users, ChevronRight, CheckCircle2, Clock, Upload,
     Download, FileText, PoundSterling, Calendar as CalendarIcon,
-    Loader2, Plus, ArrowUpRight
+    Loader2, Plus, ArrowUpRight, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -64,6 +64,9 @@ export default function Payroll({ userId, clientName }: PayrollProps) {
     // Upload Modals (Accountant)
     const [isUploadPayslipOpen, setIsUploadPayslipOpen] = useState(false);
     const [uploadPayslipForm, setUploadPayslipForm] = useState<{ month: string, file: File | null, submissionId?: number }>({ month: '', file: null });
+
+    const [isUploadP32Open, setIsUploadP32Open] = useState(false);
+    const [p32Form, setP32Form] = useState<{ month: string, file: File | null }>({ month: '', file: null });
 
     const [isLiabilityOpen, setIsLiabilityOpen] = useState(false);
     const [liabilityForm, setLiabilityForm] = useState({ month: '', amount: '', payment_link: '', payment_reference: '' });
@@ -175,6 +178,26 @@ export default function Payroll({ userId, clientName }: PayrollProps) {
         }
     };
 
+    const handleUploadP32 = async () => {
+        if (!p32Form.file || !p32Form.month) return;
+        const formData = new FormData();
+        formData.append('user_id', targetUserId.toString());
+        formData.append('month', p32Form.month);
+        formData.append('year', selectedYear);
+        formData.append('file', p32Form.file);
+
+        try {
+            await axios.post('/api/payroll/liabilities/p32', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            setIsUploadP32Open(false);
+            loadTabData();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to upload P32 form');
+        }
+    };
+
     const handleSaveLiability = async () => {
         if (!liabilityForm.month || !liabilityForm.amount) return;
         try {
@@ -226,6 +249,17 @@ export default function Payroll({ userId, clientName }: PayrollProps) {
         } catch (error) {
             console.error(error);
             alert('Failed to upload document');
+        }
+    };
+
+    const handleDeleteFile = async (type: string, id: number) => {
+        if (!confirm('Are you sure you want to delete this file/record?')) return;
+        try {
+            await axios.delete(`/api/files/${type}/${id}`);
+            loadTabData();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to delete file.');
         }
     };
 
@@ -301,11 +335,16 @@ export default function Payroll({ userId, clientName }: PayrollProps) {
                                     </div>
                                     <div className="flex gap-2">
                                         {submission.status === 'processed' ? (
-                                            <div className="flex gap-1">
+                                            <div className="flex gap-1 items-center">
                                                 <CheckCircle2 className="w-5 h-5 text-green-500" />
                                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => window.open(submission.payslip_file_path, '_blank')}>
                                                     <Download className="w-4 h-4 text-blue-500" />
                                                 </Button>
+                                                {isAccountant && (
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteFile('submission_payslip', submission.id)}>
+                                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-1 rounded-md text-xs font-medium">Pending</div>
@@ -425,11 +464,45 @@ export default function Payroll({ userId, clientName }: PayrollProps) {
                                     <p className="text-xs text-slate-500 uppercase">Payment Reference</p>
                                     <p className="font-mono text-slate-900 dark:text-white">{liability.payment_reference || 'N/A'}</p>
                                 </div>
-                                {liability.payment_link && (
-                                    <Button size="sm" onClick={() => window.open(liability.payment_link, '_blank')}>
-                                        Pay Now
-                                    </Button>
-                                )}
+                                <div className="flex gap-2">
+                                    {liability.p32_file_path && (
+                                        <div className="flex gap-1 items-center bg-slate-100 dark:bg-slate-700 rounded-lg px-2">
+                                            <Button variant="ghost" size="sm" className="h-8 text-xs text-blue-600 font-bold" onClick={() => window.open(liability.p32_file_path, '_blank')}>
+                                                <Download className="w-3 h-3 mr-1" />
+                                                P32
+                                            </Button>
+                                            {isAccountant && (
+                                                <button onClick={() => handleDeleteFile('p32', liability.id)} className="p-1 text-red-500 hover:text-red-700">
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                    {isAccountant && !liability.p32_file_path && (
+                                        <Button variant="outline" size="sm" className="h-8 text-xs border-dashed" onClick={() => { setP32Form({ month, file: null }); setIsUploadP32Open(true); }}>
+                                            <Upload className="w-3 h-3 mr-1" />
+                                            Upload P32
+                                        </Button>
+                                    )}
+                                    {isAccountant && liability.p32_file_path && (
+                                        <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => { setP32Form({ month, file: null }); setIsUploadP32Open(true); }}>
+                                            Re-upload P32
+                                        </Button>
+                                    )}
+                                    {liability.payment_link && (
+                                        <Button size="sm" className="h-8" onClick={() => window.open(liability.payment_link, '_blank')}>
+                                            Pay Now
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        {!liability && isAccountant && (
+                            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                                <Button variant="outline" size="sm" className="h-8 text-xs border-dashed" onClick={() => { setP32Form({ month, file: null }); setIsUploadP32Open(true); }}>
+                                    <Upload className="w-3 h-3 mr-1" />
+                                    Upload P32 Only
+                                </Button>
                             </div>
                         )}
                     </div>
@@ -453,6 +526,12 @@ export default function Payroll({ userId, clientName }: PayrollProps) {
                             <Download className="w-4 h-4 mr-2" />
                             Download Form
                         </Button>
+                        {isAccountant && (
+                            <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/40" onClick={() => handleDeleteFile('starter_form', starterForm.id)}>
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete Form
+                            </Button>
+                        )}
                     </div>
                 ) : (
                     <p className="text-amber-600 text-sm">Form not available yet. Please contact your accountant.</p>
@@ -518,10 +597,17 @@ export default function Payroll({ userId, clientName }: PayrollProps) {
                                     <p className="text-sm text-slate-500">Tax Year: {doc.tax_year}</p>
                                 </div>
                             </div>
-                            <Button variant="outline" onClick={() => window.open(doc.file_path, '_blank')}>
-                                <Download className="w-4 h-4 mr-2" />
-                                Download
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button variant="outline" onClick={() => window.open(doc.file_path, '_blank')}>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Download
+                                </Button>
+                                {isAccountant && (
+                                    <Button variant="outline" className="text-red-600/80 hover:text-red-600 hover:bg-red-50 dark:border-slate-700" size="icon" onClick={() => handleDeleteFile('p60_p45', doc.id)}>
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -657,6 +743,25 @@ export default function Payroll({ userId, clientName }: PayrollProps) {
                         </div>
                         <DialogFooter>
                             <Button onClick={handleUploadPayslip}>Upload</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Upload P32 Modal (Accountant) */}
+                <Dialog open={isUploadP32Open} onOpenChange={setIsUploadP32Open}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Upload P32 Payroll Document</DialogTitle>
+                            <DialogDescription>Month: {p32Form.month} {selectedYear}</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label>P32 File</Label>
+                                <Input type="file" onChange={(e) => setP32Form({ ...p32Form, file: e.target.files?.[0] || null })} />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button onClick={handleUploadP32}>Upload P32</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

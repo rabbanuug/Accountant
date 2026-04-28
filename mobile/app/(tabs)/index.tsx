@@ -10,6 +10,7 @@ import {
   Alert,
   TextInput,
   Modal,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -83,6 +84,14 @@ export default function ClientDashboard() {
       icon: 'person',
       colors: ['#06b6d4', '#0891b2'] as const,
       route: '/accounting/self-assessment',
+    },
+    {
+      id: 'document-depositor',
+      title: 'Document Depositor',
+      subtitle: 'Upload Income & Expense',
+      icon: 'cloud-upload',
+      colors: ['#6366f1', '#4f46e5'] as const,
+      route: '/accounting/document-depositor',
     },
   ];
 
@@ -228,9 +237,13 @@ export default function ClientDashboard() {
           colors={['#0f172a', '#1e293b', '#0f172a']}
           style={StyleSheet.absoluteFill}
         />
-        <LinearGradient colors={['#3b82f6', '#14b8a6']} style={styles.loadingLogo}>
-          <Text style={styles.loadingLogoText}>AC</Text>
-        </LinearGradient>
+        <View style={styles.loadingLogoContainer}>
+          <Image
+            source={require('../../assets/images/docklands_logo.png')}
+            style={styles.loadingLogoImage}
+            resizeMode="contain"
+          />
+        </View>
         <Text style={styles.loadingText}>Loading your dashboard...</Text>
       </View>
     );
@@ -257,9 +270,18 @@ export default function ClientDashboard() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <View>
-              <Text style={styles.greeting}>Welcome back,</Text>
-              <Text style={styles.userName}>{user?.name || 'Client'}</Text>
+            <View style={styles.headerLeft}>
+              <View style={styles.headerLogoContainer}>
+                <Image
+                  source={require('../../assets/images/docklands_logo.png')}
+                  style={styles.headerLogo}
+                  resizeMode="contain"
+                />
+              </View>
+              <View>
+                <Text style={styles.greeting}>Welcome back,</Text>
+                <Text style={styles.userName}>{user?.name || 'Client'}</Text>
+              </View>
             </View>
             <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
               <Ionicons name="log-out-outline" size={20} color="#ef4444" />
@@ -527,22 +549,44 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingLogo: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
+  loadingLogoContainer: {
+    width: 100,
+    height: 100,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  loadingLogoText: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: 'bold',
+  loadingLogoImage: {
+    width: 60,
+    height: 60,
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: 20,
     color: '#94a3b8',
     fontSize: 16,
+    fontWeight: '500',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerLogoContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  headerLogo: {
+    width: 32,
+    height: 32,
   },
   header: {
     flexDirection: 'row',

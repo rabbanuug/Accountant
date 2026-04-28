@@ -45,14 +45,20 @@ export default function Login() {
     };
 
     const handleLogin = async () => {
-        if (!email || !password) {
+        const trimmedEmail = email.trim();
+        const trimmedPassword = password.trim();
+
+        if (!trimmedEmail || !trimmedPassword) {
             Alert.alert('Error', 'Please enter email and password');
             return;
         }
 
         setLoading(true);
         try {
-            const response = await api.post('/login', { email, password });
+            const response = await api.post('/login', {
+                email: trimmedEmail,
+                password: trimmedPassword
+            });
             await SecureStore.setItemAsync('token', response.data.access_token);
             await SecureStore.setItemAsync('user', JSON.stringify(response.data.user));
             await SecureStore.setItemAsync('remember_me', rememberMe ? 'true' : 'false');
@@ -171,7 +177,7 @@ export default function Login() {
                                     </View>
                                     <Text style={styles.rememberText}>Remember me</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity>
+                                <TouchableOpacity onPress={() => router.push('/forgot-password')}>
                                     <Text style={styles.forgotPassword}>Forgot Password?</Text>
                                 </TouchableOpacity>
                             </View>

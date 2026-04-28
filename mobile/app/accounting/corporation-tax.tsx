@@ -180,21 +180,40 @@ export default function CorporationTaxScreen() {
                             {/* Documents Section */}
                             <Text style={styles.sectionTitle}>Tax Documents</Text>
 
-                            {/* CT600 */}
-                            <TouchableOpacity
-                                style={[styles.docCard, !taxData?.ct600_file && styles.docCardDisabled]}
-                                disabled={!taxData?.ct600_file}
-                                onPress={() => handleViewPdf(taxData.ct600_file, `CT600 - ${selectedYear}`)}
-                            >
-                                <View style={[styles.docIcon, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
-                                    <Ionicons name="document-text" size={24} color="#3b82f6" />
-                                </View>
-                                <View style={styles.docInfo}>
-                                    <Text style={styles.docTitle}>CT600 Tax Return</Text>
-                                    <Text style={styles.docSubtitle}>{taxData?.ct600_file ? 'Ready to view & download' : 'Not uploaded yet'}</Text>
-                                </View>
-                                {taxData?.ct600_file && <Ionicons name="chevron-forward" size={20} color="#64748b" />}
-                            </TouchableOpacity>
+                            {/* CT600 - Handle Array */}
+                            {taxData?.ct600_files && Array.isArray(taxData.ct600_files) && taxData.ct600_files.length > 0 ? (
+                                taxData.ct600_files.map((file: any, index: number) => (
+                                    <TouchableOpacity
+                                        key={file.id || index}
+                                        style={styles.docCard}
+                                        onPress={() => handleViewPdf(file.path, file.name)}
+                                    >
+                                        <View style={[styles.docIcon, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
+                                            <Ionicons name="document-text" size={24} color="#3b82f6" />
+                                        </View>
+                                        <View style={styles.docInfo}>
+                                            <Text style={styles.docTitle}>{file.name}</Text>
+                                            <Text style={styles.docSubtitle}>CT600 Return - Part {index + 1}</Text>
+                                        </View>
+                                        <Ionicons name="chevron-forward" size={20} color="#64748b" />
+                                    </TouchableOpacity>
+                                ))
+                            ) : (
+                                <TouchableOpacity
+                                    style={[styles.docCard, !taxData?.ct600_file && styles.docCardDisabled]}
+                                    disabled={!taxData?.ct600_file}
+                                    onPress={() => handleViewPdf(taxData.ct600_file, `CT600 - ${selectedYear}`)}
+                                >
+                                    <View style={[styles.docIcon, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
+                                        <Ionicons name="document-text" size={24} color="#3b82f6" />
+                                    </View>
+                                    <View style={styles.docInfo}>
+                                        <Text style={styles.docTitle}>CT600 Tax Return</Text>
+                                        <Text style={styles.docSubtitle}>{taxData?.ct600_file ? 'Ready to view & download' : 'Not uploaded yet'}</Text>
+                                    </View>
+                                    {taxData?.ct600_file && <Ionicons name="chevron-forward" size={20} color="#64748b" />}
+                                </TouchableOpacity>
+                            )}
 
                             {/* Computation */}
                             <TouchableOpacity

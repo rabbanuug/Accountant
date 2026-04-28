@@ -14,6 +14,7 @@ class CorporationTax extends Model
         'year',
         'ct600_file',
         'ct600_filename',
+        'ct600_files',
         'tax_computation_file',
         'tax_computation_filename',
         'liability_amount',
@@ -23,6 +24,7 @@ class CorporationTax extends Model
 
     protected $casts = [
         'liability_amount' => 'decimal:2',
+        'ct600_files' => 'array',
     ];
 
     public function user(): BelongsTo

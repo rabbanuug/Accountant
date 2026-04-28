@@ -2,7 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Receipt, PoundSterling, Loader2, Download, CreditCard, Calendar, FileText, Upload, ExternalLink } from 'lucide-react';
+import { Receipt, PoundSterling, Loader2, Download, CreditCard, Calendar, FileText, Upload, ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -114,6 +114,17 @@ export default function VAT({ userId, clientName }: Props) {
         }
     };
 
+    const handleDeleteFile = async (type: string, id: number) => {
+        if (!confirm('Are you sure you want to delete this file/record?')) return;
+        try {
+            await axios.delete(`/api/files/${type}/${id}`);
+            loadData();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to delete file.');
+        }
+    };
+
     return (
         <AppLayout breadcrumbs={[
             { title: 'Accounting', href: '/accounting' },
@@ -184,10 +195,17 @@ export default function VAT({ userId, clientName }: Props) {
                             {vatData?.vat_return_file ? (
                                 <>
                                     <p className="text-sm text-slate-500 mb-8">{vatData.vat_return_filename || 'vat-return.pdf'}</p>
-                                    <Button onClick={() => window.open(vatData.vat_return_file, '_blank')} className="w-full max-w-xs" variant="outline">
-                                        <Download className="w-4 h-4 mr-2" />
-                                        Download PDF
-                                    </Button>
+                                    <div className="flex gap-2 w-full max-w-xs">
+                                        <Button onClick={() => window.open(vatData.vat_return_file, '_blank')} className="flex-1" variant="outline">
+                                            <Download className="w-4 h-4 mr-2" />
+                                            Download PDF
+                                        </Button>
+                                        {isAccountant && (
+                                            <Button variant="outline" size="icon" className="text-red-500 border-red-200" onClick={() => handleDeleteFile('vat_record', vatData.id)}>
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        )}
+                                    </div>
                                 </>
                             ) : (
                                 <div className="py-8 px-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 w-full mb-4">

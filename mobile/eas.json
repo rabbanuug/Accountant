@@ -21,6 +21,9 @@
       "android": {
         "buildType": "app-bundle"
       },
+      "ios": {
+        "resourceClass": "m-medium"
+      },
       "autoIncrement": true
     }
   },

@@ -32,11 +32,11 @@ const mainNavItems: NavItem[] = [
         href: '/meetings',
         icon: Calendar,
     },
-    // {
-    //     title: 'Accounting',
-    //     href: '/accounting',
-    //     icon: BookOpen,
-    // },
+    {
+        title: 'Support Requests',
+        href: '/support-requests',
+        icon: BookOpen, // I'll change this to MessageSquare later or use a different icon
+    },
 ];
 
 const footerNavItems: NavItem[] = [

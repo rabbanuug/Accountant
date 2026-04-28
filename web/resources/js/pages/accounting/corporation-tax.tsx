@@ -2,7 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FileText, Calculator, PoundSterling, Loader2, Download, CreditCard, Upload, ExternalLink } from 'lucide-react';
+import { FileText, Calculator, PoundSterling, Loader2, Download, CreditCard, Upload, ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -105,6 +105,29 @@ export default function CorporationTax({ userId, clientName }: Props) {
         }
     };
 
+    const handleDeleteFile = async (type: string, id: number) => {
+        if (!confirm('Are you sure you want to delete this file/record?')) return;
+        try {
+            await axios.delete(`/api/files/${type}/${id}`);
+            loadData();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to delete file.');
+        }
+    };
+
+    const handleDeleteCT600ArrayFile = async (id: number, subId: string) => {
+        if (!confirm('Are you sure you want to delete this CT600 file?')) return;
+        try {
+            // We'll add special handling for this in API
+            await axios.delete(`/api/files/ct600_array/${id}?sub_id=${subId}`);
+            loadData();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to delete file.');
+        }
+    };
+
     return (
         <AppLayout breadcrumbs={[
             { title: 'Accounting', href: '/accounting' },
@@ -158,18 +181,56 @@ export default function CorporationTax({ userId, clientName }: Props) {
                             <div className="w-20 h-20 bg-amber-100 text-amber-600 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-6">
                                 <FileText className="w-10 h-10" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">CT600 Return</h3>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">CT600 Returns</h3>
 
-                            {taxData?.ct600_file ? (
-                                <>
-                                    <p className="text-sm text-slate-500 mb-8">{taxData.ct600_filename || 'ct600.pdf'}</p>
-                                    <Button onClick={() => window.open(taxData.ct600_file, '_blank')} className="w-full" variant="outline">
-                                        <Download className="w-4 h-4 mr-2" />
-                                        Download Return
-                                    </Button>
-                                </>
-                            ) : (
-                                <p className="text-sm text-slate-500 py-6">No CT600 filed for {selectedYear}</p>
+                            <div className="w-full space-y-3 mb-6">
+                                {taxData?.ct600_files && taxData.ct600_files.length > 0 ? (
+                                    taxData.ct600_files.map((file: any) => (
+                                        <div key={file.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 group">
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                <FileText className="w-4 h-4 text-amber-500 shrink-0" />
+                                                <span className="text-sm font-medium truncate" title={file.name}>{file.name}</span>
+                                            </div>
+                                            <div className="flex gap-1 shrink-0">
+                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(file.path, '_blank')}>
+                                                    <Download className="w-3.5 h-3.5 text-blue-500" />
+                                                </Button>
+                                                {isAccountant && (
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteCT600ArrayFile(taxData.id, file.id)}>
+                                                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : taxData?.ct600_file ? (
+                                    // Fallback for legacy single file
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            <FileText className="w-4 h-4 text-amber-500 shrink-0" />
+                                            <span className="text-sm font-medium truncate">{taxData.ct600_filename || 'ct600.pdf'}</span>
+                                        </div>
+                                        <div className="flex gap-1 shrink-0">
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(taxData.ct600_file, '_blank')}>
+                                                <Download className="w-3.5 h-3.5 text-blue-500" />
+                                            </Button>
+                                            {isAccountant && (
+                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteFile('corporation_tax_ct600', taxData.id)}>
+                                                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-slate-500 py-6">No CT600 filed for {selectedYear}</p>
+                                )}
+                            </div>
+
+                            {isAccountant && (
+                                <Button onClick={() => setIsManageOpen(true)} variant="outline" className="w-full border-dashed font-bold text-amber-600 border-amber-200 hover:bg-amber-50">
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Upload More
+                                </Button>
                             )}
                         </div>
 
@@ -181,13 +242,28 @@ export default function CorporationTax({ userId, clientName }: Props) {
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Tax Computation</h3>
 
                             {taxData?.tax_computation_file ? (
-                                <>
-                                    <p className="text-sm text-slate-500 mb-8">{taxData.tax_computation_filename || 'computation.pdf'}</p>
+                                <div className="w-full">
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 mb-6">
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            <Calculator className="w-4 h-4 text-amber-500 shrink-0" />
+                                            <span className="text-sm font-medium truncate">{taxData.tax_computation_filename || 'computation.pdf'}</span>
+                                        </div>
+                                        <div className="flex gap-1 shrink-0">
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(taxData.tax_computation_file, '_blank')}>
+                                                <Download className="w-3.5 h-3.5 text-blue-500" />
+                                            </Button>
+                                            {isAccountant && (
+                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteFile('corporation_tax_computation', taxData.id)}>
+                                                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
                                     <Button onClick={() => window.open(taxData.tax_computation_file, '_blank')} className="w-full" variant="outline">
                                         <Download className="w-4 h-4 mr-2" />
                                         Download Computation
                                     </Button>
-                                </>
+                                </div>
                             ) : (
                                 <p className="text-sm text-slate-500 py-6">No computation available for {selectedYear}</p>
                             )}

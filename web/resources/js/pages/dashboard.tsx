@@ -39,6 +39,12 @@ export default function Dashboard({ clients = [] }: { clients?: any[] }) {
     // New state for Company Info Modal
     const [editingCompanyInfoClientId, setEditingCompanyInfoClientId] = useState<number | null>(null);
     const [viewingChatClientId, setViewingChatClientId] = useState<number | null>(null);
+    const [isAddingClient, setIsAddingClient] = useState(false);
+    const [newClientCredentials, setNewClientCredentials] = useState<{ email: string, password: string } | null>(null);
+    const [isCreatingClient, setIsCreatingClient] = useState(false);
+    const [deletingClientId, setDeletingClientId] = useState<number | null>(null);
+    const [isDeletingClient, setIsDeletingClient] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
 
     // If viewing chat, set selected client to that ID
     useEffect(() => {
@@ -314,15 +320,24 @@ export default function Dashboard({ clients = [] }: { clients?: any[] }) {
                             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Clients</h1>
                             <p className="text-slate-500">Manage your clients and their company information</p>
                         </div>
-                        <div className="relative w-64">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Search clients..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                        <div className="flex items-center gap-4">
+                            <div className="relative w-64">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search clients..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                                />
+                            </div>
+                            <button
+                                onClick={() => setIsAddingClient(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>Add Client</span>
+                            </button>
                         </div>
                     </div>
 
@@ -351,9 +366,9 @@ export default function Dashboard({ clients = [] }: { clients?: any[] }) {
                                             <span className="font-medium">Company Info:</span>
                                         </div>
 
-                                        {/* We need to fetch company info for each client or have it included. 
+                                        {/* We need to fetch company info for each client or have it included.
                                             Assuming for now we might load it on demand or check if it exists if provided in prop.
-                                            Ideally 'clients' prop should include 'company_info'. 
+                                            Ideally 'clients' prop should include 'company_info'.
                                         */}
                                         {client.company_info ? (
                                             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 space-y-2 border border-slate-100 dark:border-slate-700">
@@ -373,6 +388,13 @@ export default function Dashboard({ clients = [] }: { clients?: any[] }) {
                                         )}
 
                                         <div className="flex gap-2">
+                                            <button
+                                                onClick={() => { setDeletingClientId(client.id); setDeletePassword(''); }}
+                                                className="flex items-center justify-center py-2 px-3 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+
                                             <Dialog open={editingCompanyInfoClientId === client.id} onOpenChange={(open) => setEditingCompanyInfoClientId(open ? client.id : null)}>
                                                 <DialogTrigger asChild>
                                                     <button className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition-colors">
@@ -495,7 +517,229 @@ export default function Dashboard({ clients = [] }: { clients?: any[] }) {
                                 </div>
                             </div>
                         ))}
-                    </div>
+                        </div>
+
+                    {/* Add Client Modal */}
+                    <Dialog open={isAddingClient} onOpenChange={setIsAddingClient}>
+                        <DialogContent className="sm:max-w-[600px]">
+                            <DialogHeader>
+                                <DialogTitle>Add New Client</DialogTitle>
+                                <DialogDescription>
+                                    Create a new client account and optionally provide company information.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                setIsCreatingClient(true);
+                                const formData = new FormData(e.currentTarget);
+                                const data = Object.fromEntries(formData.entries());
+                                try {
+                                    const response = await axios.post('/api/clients', data);
+                                    setNewClientCredentials({
+                                        email: response.data.user.email,
+                                        password: response.data.password
+                                    });
+                                    setIsAddingClient(false);
+                                    fetchClients();
+                                } catch (error) {
+                                    console.error(error);
+                                    alert('Failed to create client. Please check if the email is already in use.');
+                                } finally {
+                                    setIsCreatingClient(false);
+                                }
+                            }} className="space-y-6 py-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Client Name</label>
+                                        <input
+                                            name="name"
+                                            required
+                                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="John Doe"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Email Address</label>
+                                        <input
+                                            name="email"
+                                            type="email"
+                                            required
+                                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="john@example.com"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                        <Building2 className="w-4 h-4 text-blue-500" />
+                                        Company Information (Optional)
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Company Name/Number</label>
+                                            <input
+                                                name="company_number"
+                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Auth Code</label>
+                                            <input
+                                                name="auth_code"
+                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">CT Reference</label>
+                                            <input
+                                                name="ct_reference"
+                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">VAT Registration</label>
+                                            <input
+                                                name="vat_registration"
+                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">PAYE Registration</label>
+                                            <input
+                                                name="paye_registration"
+                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Accounts Office Ref</label>
+                                            <input
+                                                name="accounts_office_ref"
+                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end gap-3 pt-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAddingClient(false)}
+                                        className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isCreatingClient}
+                                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-semibold shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2"
+                                    >
+                                        {isCreatingClient ? 'Creating...' : 'Create Client'}
+                                    </button>
+                                </div>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Credentials Modal */}
+                    <Dialog open={!!newClientCredentials} onOpenChange={(open) => !open && setNewClientCredentials(null)}>
+                        <DialogContent className="sm:max-w-[450px]">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2 text-green-600">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    Client Created Successfully
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Please share these login credentials with the client. For security, this password will not be shown again.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 space-y-4 border border-slate-100 dark:border-slate-700 mt-4">
+                                <div className="space-y-1">
+                                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Email Address</span>
+                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-mono text-sm">
+                                        {newClientCredentials?.email}
+                                        <button onClick={() => navigator.clipboard.writeText(newClientCredentials?.email || '')} className="text-blue-500 hover:text-blue-600 text-xs font-bold uppercase">Copy</button>
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Temporary Password</span>
+                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-mono text-sm">
+                                        {newClientCredentials?.password}
+                                        <button onClick={() => navigator.clipboard.writeText(newClientCredentials?.password || '')} className="text-blue-500 hover:text-blue-600 text-xs font-bold uppercase">Copy</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex justify-end pt-4">
+                                <button
+                                    onClick={() => setNewClientCredentials(null)}
+                                    className="px-6 py-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-lg font-semibold transition-all"
+                                >
+                                    Done
+                                </button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Delete Client Modal */}
+                    <Dialog open={deletingClientId !== null} onOpenChange={(open) => !open && setDeletingClientId(null)}>
+                        <DialogContent className="sm:max-w-[400px]">
+                            <DialogHeader>
+                                <DialogTitle className="text-red-600 flex items-center gap-2">
+                                    <Trash2 className="w-5 h-5" />
+                                    Delete Client Account
+                                </DialogTitle>
+                                <DialogDescription>
+                                    This action is permanent and will cascade delete all associated data, files, and messaging history for this client.
+                                    <br/><br/>
+                                    Please enter your accountant password to confirm this destructive action.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                if (!deletingClientId) return;
+                                setIsDeletingClient(true);
+                                try {
+                                    await axios.delete(`/api/clients/${deletingClientId}`, {
+                                        data: { password: deletePassword }
+                                    });
+                                    setDeletingClientId(null);
+                                    fetchClients();
+                                } catch (error: any) {
+                                    alert(error.response?.data?.error || 'Failed to delete client. Password may be incorrect.');
+                                } finally {
+                                    setIsDeletingClient(false);
+                                }
+                            }} className="space-y-4 pt-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Your Password</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={deletePassword}
+                                        onChange={(e) => setDeletePassword(e.target.value)}
+                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        placeholder="Enter your password"
+                                    />
+                                </div>
+                                <div className="flex justify-end gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setDeletingClientId(null)}
+                                        className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isDeletingClient || !deletePassword}
+                                        className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-semibold transition-all flex items-center gap-2"
+                                    >
+                                        {isDeletingClient ? 'Deleting...' : 'Permanently Delete'}
+                                    </button>
+                                </div>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </AppLayout>
         );
@@ -506,9 +750,9 @@ export default function Dashboard({ clients = [] }: { clients?: any[] }) {
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: dashboard().url }]}>
             <Head title="Dashboard" />
             <div className="flex h-[calc(100vh-65px)] p-4 gap-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-                {/* Client List - Hidden on mobile or if viewing specific chat in accountant view 
+                {/* Client List - Hidden on mobile or if viewing specific chat in accountant view
                     Actually, if we are in 'chat view' mode for accountant, maybe we show just the chat or the siderbar + chat?
-                    Let's revert to original sidebar + chat layout if viewingChatClientId is set, 
+                    Let's revert to original sidebar + chat layout if viewingChatClientId is set,
                     OR if user is client (who only sees chat).
                 */}
 

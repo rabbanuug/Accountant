@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SupportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -7,10 +8,23 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+// Public Support Page
+Route::get('/support', [SupportController::class, 'index'])->name('support');
+Route::post('/support', [SupportController::class, 'store'])->name('support.store');
+
 // Public account deletion request page (required by Google Play Store)
 Route::get('/account-deletion', function () {
     return Inertia::render('account-deletion');
 })->name('account-deletion');
+
+Route::get('/privacy-policy', function () {
+    return Inertia::render('privacy-policy');
+})->name('privacy-policy');
+
+// Authenticated Accountant Support Requests View
+Route::get('/support-requests', [SupportController::class, 'adminIndex'])
+    ->middleware(['auth', 'verified'])
+    ->name('support-requests.index');
 
 // Setup routes removed — accountant registration is handled by the software company
 // Route::get('setup', ...)->name('setup');
@@ -75,6 +89,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('accounting/self-assessment');
     })->name('accounting.self-assessment');
 
+    Route::get('accounting/document-depositor', function () {
+        return Inertia::render('accounting/document-depositor');
+    })->name('accounting.document-depositor');
+
     Route::get('clients/{userId}/accounting/company-info', function ($userId) {
         $client = \App\Models\User::findOrFail($userId);
         return Inertia::render('accounting/company-info', [
@@ -122,6 +140,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'clientName' => $client->name,
         ]);
     })->name('clients.accounting.self-assessment');
+
+    Route::get('clients/{userId}/accounting/document-depositor', function ($userId) {
+        $client = \App\Models\User::findOrFail($userId);
+        return Inertia::render('accounting/document-depositor', [
+            'userId' => $client->id,
+            'clientName' => $client->name,
+        ]);
+    })->name('clients.accounting.document-depositor');
 });
 
 require __DIR__ . '/settings.php';

@@ -242,6 +242,16 @@ export default function PayrollScreen() {
                                         <Ionicons name="open-outline" size={18} color="#fff" />
                                     </TouchableOpacity>
                                 )}
+
+                                {liability.p32_file_path && (
+                                    <TouchableOpacity
+                                        style={[styles.payNowBtn, { backgroundColor: '#8b5cf6', marginTop: 12 }]}
+                                        onPress={() => handleViewPdf(liability.p32_file_path, `P32 - ${liability.month} ${selectedYear}`)}
+                                    >
+                                        <Text style={styles.payNowBtnText}>Download P32</Text>
+                                        <Ionicons name="download-outline" size={18} color="#fff" />
+                                    </TouchableOpacity>
+                                )}
                             </LinearGradient>
                         </View>
                     )}
@@ -459,7 +469,7 @@ export default function PayrollScreen() {
                                 />
                             ) : (
                                 <WebView
-                                    source={{ uri: pdfUrl }}
+                                    source={{ uri: pdfUrl || '' }}
                                     style={{ flex: 1 }}
                                     startInLoadingState
                                 />

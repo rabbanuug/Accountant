@@ -57,8 +57,7 @@ RUN apk add --no-cache \
     libpng \
     oniguruma \
     libxml2 \
-    libpq \
-    nodejs
+    libpq
 
 # Copy compiled extensions from builder
 COPY --from=builder /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/

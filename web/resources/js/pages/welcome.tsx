@@ -345,9 +345,9 @@ export default function Welcome() {
                                 <img src="/docklands.png" alt="Docklands Accountants" className="h-10 w-auto object-contain" />
                             </div>
                             <div className="flex gap-8 text-sm text-slate-400">
-                                <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-                                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-                                <a href="#" className="hover:text-white transition-colors">Contact</a>
+                                <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+                                <Link href="/support" className="hover:text-white transition-colors">Support</Link>
+                                <Link href="/account-deletion" className="hover:text-white transition-colors">Account Deletion</Link>
                             </div>
                             <div className="text-sm text-slate-500">
                                 © 2026 Docklands Accountants. Professional Accounting Services.

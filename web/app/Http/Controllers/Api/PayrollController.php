@@ -186,6 +186,36 @@ class PayrollController extends Controller
         return response()->json($liability);
     }
 
+    public function uploadP32(Request $request)
+    {
+        $authUser = Auth::user();
+
+        if ($authUser->role !== 'accountant') {
+            return response()->json(['error' => 'Only accountants can upload P32 forms'], 403);
+        }
+
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'month' => 'required|string',
+            'year' => 'required|string',
+            'file' => 'required|file|max:10240',
+        ]);
+
+        $file = $request->file('file');
+        $folder = 'payroll/p32/' . Str::uuid();
+        $path = $file->storeAs($folder, $file->getClientOriginalName(), 'public');
+
+        $liability = PayrollLiability::updateOrCreate(
+            ['user_id' => $request->user_id, 'month' => $request->month, 'year' => $request->year],
+            [
+                'p32_file_path' => '/storage/' . $path,
+                'p32_filename' => $file->getClientOriginalName(),
+            ]
+        );
+
+        return response()->json($liability);
+    }
+
     // ─── Starter Form ───
 
     public function getStarterForm(Request $request)
