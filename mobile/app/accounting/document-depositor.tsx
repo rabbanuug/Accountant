@@ -39,7 +39,12 @@ export default function DocumentDepositor() {
             : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Sorry, we need camera/gallery permissions to make this work!');
+            Alert.alert(
+                'Permission Denied', 
+                useCamera 
+                    ? 'Camera access is required to take photos of your documents or receipts.' 
+                    : 'Gallery access is required to select your existing documents or receipts.'
+            );
             return;
         }
 

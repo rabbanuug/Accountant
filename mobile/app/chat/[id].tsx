@@ -258,8 +258,14 @@ export default function ChatScreen() {
 
     const pickImage = async () => {
         try {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Gallery access is required to share photos.');
+                return;
+            }
+
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['images'],
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
                 quality: 0.8,
             });
             if (!result.canceled) {
@@ -283,7 +289,11 @@ export default function ChatScreen() {
     const startRecording = async () => {
         try {
             if (permissionResponse?.status !== 'granted') {
-                await requestPermission();
+                const response = await requestPermission();
+                if (response.status !== 'granted') {
+                    Alert.alert('Permission Denied', 'Microphone access is required to record voice messages.');
+                    return;
+                }
             }
 
             await Audio.setAudioModeAsync({
@@ -297,6 +307,7 @@ export default function ChatScreen() {
             setRecording(recording);
         } catch (err) {
             console.error('Failed to start recording', err);
+            Alert.alert('Error', 'Failed to start recording.');
         }
     };
 
@@ -796,6 +807,7 @@ export default function ChatScreen() {
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity 
+                            onPress={() => Alert.alert('Voice Message', 'Hold the microphone button to record a voice message.')}
                             onLongPress={startRecording}
                             onPressOut={stopRecording}
                             style={[styles.sendCircle, recording ? { backgroundColor: '#ef4444' } : {}]}

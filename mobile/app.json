@@ -11,9 +11,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.docklandsaccountants.app",
-      "buildNumber": "3",
+      "buildNumber": "9",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "This app requires access to the camera to allow you to take photos of documents, receipts, and other files to upload and share with your accountant.",
+        "NSMicrophoneUsageDescription": "This app requires microphone access to allow you to record and send voice messages in chat.",
+        "NSPhotoLibraryUsageDescription": "The app requires access to your photos to let you select and share documents or receipts in chat."
       }
     },
     "android": {
@@ -29,7 +32,7 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
-      "versionCode": 8
+      "versionCode": 9
     },
     "web": {
       "output": "static",
@@ -53,13 +56,22 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share them in chat."
+          "photosPermission": "The app requires access to your photos to let you select and share documents or receipts in chat.",
+          "cameraPermission": "This app requires access to the camera to allow you to take photos of documents, receipts, and other files to upload and share with your accountant.",
+          "microphonePermission": "This app requires microphone access to allow you to record and send voice messages in chat."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "This app requires access to the camera to allow you to take photos of documents, receipts, and other files to upload and share with your accountant.",
+          "microphonePermission": "This app requires microphone access to allow you to record and send voice messages in chat."
         }
       ],
       [
         "expo-av",
         {
-          "microphonePermission": "Allow app to access your microphone for voice messages."
+          "microphonePermission": "This app requires microphone access to allow you to record and send voice messages in chat."
         }
       ]
     ],
